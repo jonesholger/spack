@@ -72,6 +72,7 @@ class Lbann(CMakePackage, CudaPackage, ROCmPackage):
     variant('pfe', default=True, description='Python Frontend for generating and launching models')
     variant('boost', default=False, description='Enable callbacks that use Boost libraries')
     variant('asan', default=False, description='Build with support for address-sanitizer')
+    variant('caliper',default=False, description='Build with support for Caliper based profiling')
 
     # LBANN benefits from high performance linkers, but passing these in as command
     # line options forces the linker flags to unnecessarily propagate to all
@@ -237,6 +238,9 @@ class Lbann(CMakePackage, CudaPackage, ROCmPackage):
     generator = 'Ninja'
     depends_on('ninja', type='build')
 
+    depends_on('caliper@2.6.0',when='@:0.90,0.102: +caliper')
+    depends_on('caliper@2.6.0 +cuda',when='@:0.90,0.102: +caliper +cuda')
+
     @property
     def common_config_args(self):
         spec = self.spec
@@ -306,6 +310,7 @@ class Lbann(CMakePackage, CudaPackage, ROCmPackage):
             '-DLBANN_WITH_UNIT_TESTING:BOOL=%s' % (self.run_tests),
             '-DLBANN_WITH_VISION:BOOL=%s' % ('+vision' in spec),
             '-DLBANN_WITH_VTUNE:BOOL=%s' % ('+vtune' in spec),
+            '-DLBANN_WITH_CALIPER:BOOL=%s' % ('+caliper' in spec),
             '-DLBANN_DATATYPE={0}'.format(spec.variants['dtype'].value),
             '-DCEREAL_DIR={0}'.format(spec['cereal'].prefix),
             # protobuf is included by py-protobuf+cpp
